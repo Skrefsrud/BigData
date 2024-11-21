@@ -12,32 +12,34 @@ import numpy as np
 import seaborn as sns
 
 
+#I might use different methods from what we have learned in class as i have learned much on my own at home using online resources. 
+
 # cleaning of the data
+# --------------------------------------------------------------------
 
 # Load the dataset
 file_path = 'employee-status.csv'
 data = pd.read_csv(file_path)
 
-# Step 1: Remove irrelevant columns
+# Remove irrelevant columns specified in the task description
 data_cleaned = data.drop(
     columns=['last_evaluation', 'n_projects', 'recently_promoted'])
 
-# Step 2: Drop rows with missing values in critical columns
+# Drop rows with missing values in critical columns
 data_cleaned = data_cleaned.dropna(
     subset=['satisfaction', 'avg_monthly_hrs', 'department'])
 
-# Step 3: Standardize department names
+# Standardize department names (information_techonology and administration were not consistent throughout the dataset)
 data_cleaned['department'] = data_cleaned['department'].replace({
     'IT': 'information_technology',
     'admin': 'administration'
 })
 
-# Step 4: Remove duplicate rows
+# Remove duplicate rows
 data_cleaned = data_cleaned.drop_duplicates()
 
-# Step 5: Detect and handle outliers in numerical data using the IQR method
 
-
+# Detect and handle outliers in numerical data using the IQR method. Not strictly nessesary, but it is a good practice according to sources i found
 def remove_outliers(df, column):
     Q1 = df[column].quantile(0.25)
     Q3 = df[column].quantile(0.75)
@@ -50,17 +52,17 @@ def remove_outliers(df, column):
 data_cleaned = remove_outliers(data_cleaned, 'avg_monthly_hrs')
 data_cleaned = remove_outliers(data_cleaned, 'tenure')
 
-# Step 6: Handle missing values in 'filed_complaint'
+# Handle missing values in 'filed_complaint'
 data_cleaned['filed_complaint'] = data_cleaned['filed_complaint'].fillna(0)
 
-# Step 7: Ensure 'status' has consistent encoding
+# Ensure 'status' has consistent encoding
 data_cleaned['status'] = data_cleaned['status'].map({'Left': 0, 'Employed': 1})
 
-# Step 8: Verify numeric ranges and ensure satisfaction is within [0, 1]
+# Verify numeric ranges and ensure satisfaction is within [0, 1]
 data_cleaned = data_cleaned[(data_cleaned['satisfaction'] >= 0) & (
     data_cleaned['satisfaction'] <= 1)]
 
-# Step 9: Verify valid categories in categorical columns
+# Verify valid categories in categorical columns
 valid_departments = [
     'engineering', 'support', 'sales', 'information_technology',
     'product', 'marketing', 'procurement', 'finance', 'management', 'administration'
@@ -105,7 +107,7 @@ plt.show()  # Display the histogram
 # --------------------------------------------------------------------
 # task c)
 
-# Step 1: Visualize the relationship with a scatter plot
+# Visualize the relationship with a scatter plot
 plt.figure(figsize=(10, 6))  # Set the figure size
 sns.scatterplot(
     x=data_cleaned['avg_monthly_hrs'],  # X-axis: Average monthly hours worked
@@ -119,7 +121,7 @@ plt.ylabel('Satisfaction Score', fontsize=14)  # Label for y-axis
 plt.grid(True)  # Add gridlines for better visualization
 plt.show()  # Display the plot
 
-# Step 2: Calculate Pearson correlation coefficient
+# Calculate Pearson correlation coefficient
 # Compute the correlation matrix and extract the value between the two variables
 correlation = np.corrcoef(
     data_cleaned['avg_monthly_hrs'], data_cleaned['satisfaction'])[0, 1]
@@ -136,7 +138,7 @@ print(f"Pearson Correlation Coefficient: {correlation:.4f}")
 
 # --------------------------------------------------------------------
 # task d)
-# Step 1: Select features and target for the decision tree
+# Select features and target for the decision tree
 
 features = data_cleaned[['avg_monthly_hrs', 'filed_complaint',
                          'satisfaction', 'tenure']]  # Predictor variables
@@ -144,7 +146,7 @@ features = data_cleaned[['avg_monthly_hrs', 'filed_complaint',
 target = data_cleaned['status']  # Target variable (0 = Left, 1 = Employed)
 
 
-# Step 2: Split the dataset into training and testing sets
+# Split the dataset into training and testing sets
 
 X_train, X_test, y_train, y_test = train_test_split(
 
@@ -153,7 +155,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-# Step 3: Create the Decision Tree Classifier
+# Create the Decision Tree Classifier
 
 decision_tree = DecisionTreeClassifier(
     random_state=42, min_impurity_decrease=0.01)
@@ -164,7 +166,7 @@ decision_tree = DecisionTreeClassifier(
 decision_tree.fit(X_train, y_train)
 
 
-# Step 4: Visualize the Decision Tree
+# Visualize the Decision Tree
 
 plt.figure(figsize=(12, 8))  # Set figure size for better readability
 
@@ -207,19 +209,19 @@ print(f"Decision Tree Testing Accuracy: {test_accuracy:.4f}")
 
 # KNN
 
-# Step 1: Create and train the KNN classifier with K=8
+# Create and train the KNN classifier with K=8
 knn_classifier = KNeighborsClassifier(
     n_neighbors=8)  # Initialize KNN with 8 neighbors
 # Train the KNN classifier on the training data
 knn_classifier.fit(X_train, y_train)
 
-# Step 2: Make predictions on the test set
+# Make predictions on the test set
 y_pred_knn = knn_classifier.predict(X_test)
 
-# Step 3: Compute the confusion matrix for KNN
+# Compute the confusion matrix for KNN
 conf_matrix_knn = confusion_matrix(y_test, y_pred_knn)
 
-# Step 4: Manually calculate the F1-score for KNN
+# Manually calculate the F1-score for KNN
 tn_knn, fp_knn, fn_knn, tp_knn = conf_matrix_knn.ravel()
 precision_knn = tp_knn / (tp_knn + fp_knn)
 recall_knn = tp_knn / (tp_knn + fn_knn)
@@ -266,20 +268,18 @@ else:
 
 # --------------------------------------------------------------------
 # task g)
-# Reload the dataset
-file_path = 'employee-status.csv'
-data = pd.read_csv(file_path)
 
-# Clean the data for regression tree analysis, the last cleaning removed the now nessecary n_project that was specified as not relevant in the exam task.
-# Step 1: Drop rows with missing values in relevant columns
+# i have to create a new cleaned dataframe since i removed the n_project column from the previous cleaned dataframe as it was specified as not relevant in the task description
+# Clean the data for regression tree analysis.
+# Drop rows with missing values in relevant columns
 data_cleaned_reg = data.dropna(
     subset=['satisfaction', 'n_projects', 'tenure', 'avg_monthly_hrs'])
 
-# Step 2: Ensure satisfaction is within the valid range [0, 1]
+# Ensure satisfaction is within the valid range [0, 1]
 data_cleaned_reg = data_cleaned_reg[(data_cleaned_reg['satisfaction'] >= 0) & (
     data_cleaned_reg['satisfaction'] <= 1)]
 
-# Step 3: Remove outliers in numerical columns using the IQR method
+# Remove outliers in numerical columns using the IQR method
 
 
 def remove_outliers(df, column):
@@ -295,24 +295,24 @@ data_cleaned_reg = remove_outliers(data_cleaned_reg, 'n_projects')
 data_cleaned_reg = remove_outliers(data_cleaned_reg, 'tenure')
 data_cleaned_reg = remove_outliers(data_cleaned_reg, 'avg_monthly_hrs')
 
-# Step 4: Select features and target for the regression tree
+# Select features and target for the regression tree
 # Predictor variables
 features_reg = data_cleaned_reg[['n_projects', 'tenure', 'avg_monthly_hrs']]
 # Target variable (satisfaction score)
 target_reg = data_cleaned_reg['satisfaction']
 
-# Step 5: Split the dataset into training and testing sets
+# Split the dataset into training and testing sets
 X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(
     features_reg, target_reg, test_size=0.2, random_state=42
 )
 
-# Step 6: Create the Regression Tree
+# Create the Regression Tree
 reg_tree = DecisionTreeRegressor(random_state=42, min_impurity_decrease=0.0001)
 
 # Train the regression tree
 reg_tree.fit(X_train_reg, y_train_reg)
 
-# Step 7: Find parameters of those most satisfied
+# Find parameters of those most satisfied
 predicted_satisfaction = reg_tree.predict(features_reg)
 # Find the index of the highest satisfaction
 most_satisfied_index = np.argmax(predicted_satisfaction)
